@@ -1,0 +1,13 @@
+---
+// Экран игры: единственный Solid-остров на странице. Вся логика клиентская
+// (chessground + chessops + бот), серверу нужен только HTML-каркас.
+import Base from "../../layouts/Base.astro";
+import { ChessApp } from "@chess-starter/chess";
+---
+
+<Base
+  title="Chess — Take the Space"
+  description="Interactive chess board, same as lichess: drag, legal-move hints, built-in bot. Works in Telegram and in the browser."
+>
+  <ChessApp client:only="solid" />
+</Base>

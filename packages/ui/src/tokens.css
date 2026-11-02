@@ -1,0 +1,65 @@
+/*
+ * CSS-переменные кита.
+ * Значения должны совпадать с packages/ui/src/tokens.ts (там — источник правды
+ * для утилит, здесь — для прямого CSS и сторонних виджетов).
+ */
+
+:root {
+  color-scheme: dark;
+
+  --kit-ink: #0e141a;
+  --kit-ink-2: #0a0f14;
+  --kit-panel: #161e26;
+  --kit-panel-2: #1d2731;
+  --kit-line: #2a3641;
+  --kit-line-strong: #3a4956;
+  --kit-text: #e7eef4;
+  --kit-muted: #94a7b4;
+  --kit-faint: #63737f;
+  --kit-positive: #78b05a;
+  --kit-negative: #c1564b;
+  --kit-signal: #e2a24a;
+  --kit-danger: #d0564b;
+
+  --kit-font-display: "Archivo", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --kit-font-text: ui-sans-serif, system-ui, "Segoe UI", Roboto, sans-serif;
+  --kit-font-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, monospace;
+
+  --kit-radius: 4px;
+  --kit-motion: 140ms;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--kit-ink);
+}
+
+body {
+  margin: 0;
+  background: var(--kit-ink);
+  color: var(--kit-text);
+  font-family: var(--kit-font-text);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: color-mix(in oklab, var(--kit-signal) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,52 @@
+---
+// Мини-лендинг: без JS-островов, только разметка и токены кита.
+import Base from "../layouts/Base.astro";
+
+const facts = [
+  { label: "Board", text: "chessground — open-source lichess board (BSD-2)." },
+  { label: "Rules", text: "chessops — full legal-move validation (MIT)." },
+  { label: "Bot", text: "Client-side minimax with alpha-beta, three levels." },
+  { label: "Deploy", text: "Static Astro build on Cloudflare Workers." },
+];
+---
+
+<Base
+  title="Chess — Take the Space"
+  description="Interactive chess board, same as lichess: drag, legal-move hints, built-in bot. Works in Telegram and in the browser."
+>
+  <div class="mx-auto max-w-[560px] px-5">
+    <section class="grid gap-5 py-12">
+      <span class="section-title">Take the Space / chess</span>
+      <h1 class="font-display text-4xl leading-tight">
+        Chess, same board as lichess. In your pocket.
+      </h1>
+      <p class="text-muted">
+        Открытая доска chessground и правила chessops: перетаскивание фигур,
+        подсветка легальных ходов, превращение пешки и встроенный бот. Всё работает
+        на устройстве — без аккаунта и сервера.
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a class="btn-primary" href="/app">Play</a>
+      </div>
+    </section>
+
+    <section class="m-reveal grid gap-3 border-t border-line py-10">
+      <span class="section-title">Under the hood</span>
+      {
+        facts.map((f) => (
+          <div class="flex flex-wrap items-baseline gap-3 border-t border-line py-3">
+            <span class="font-display text-sm text-text w-[110px]">{f.label}</span>
+            <span class="text-sm text-muted">{f.text}</span>
+          </div>
+        ))
+      }
+    </section>
+
+    <footer class="border-t border-line py-8">
+      <p class="text-xs text-faint">
+        Chessground BSD-2-Clause (lichess.org), piece art by Colin M.L. Burnett.
+        Chessops MIT. App code: Take the Space.
+      </p>
+    </footer>
+  </div>
+</Base>

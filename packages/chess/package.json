@@ -1,0 +1,18 @@
+{
+  "name": "@chess-starter/chess",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./chess.css": "./src/styles/chess.css"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "chessground": "^9.2.1",
+    "chessops": "^0.15.1",
+    "solid-js": "^1.9.17"
+  }
+}

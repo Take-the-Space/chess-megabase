@@ -1,0 +1,155 @@
+/* Motion-слой кита: длительности, кривые и L0-рецепты анимации.
+ *
+ * Подключение:  import "@kit/ui/motion.css";
+ *
+ * Слой дизайн-агностик: не задаёт ни цветов, ни типографики — живёт рядом с
+ * tokens.css и не конфликтует с ним. Единственное место, где заданы длительности
+ * и кривые — `--kit-dur-*` и `--kit-ease-*` ниже. Новые анимации берут значения
+ * отсюда, а не хардкодят свои.
+ *
+ * Анимируем только transform и opacity. LCP-элемент не анимируется.
+ *
+ * Поддержка animation-timeline: Chrome/Edge >= 115, Safari/iOS >= 26,
+ * Firefox с 159. Полифилла нет: где поддержки нет — контент виден сразу.
+ */
+
+:root {
+  --kit-dur-1: 150ms;
+  --kit-dur-2: 240ms;
+  --kit-dur-3: 380ms;
+  --kit-dur-4: 600ms;
+
+  --kit-ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --kit-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --kit-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* Пружина без JS: linear() — Baseline Widely Available. */
+  --kit-ease-spring: linear(
+    0, 0.0625 4%, 0.25 9%, 0.5 14%, 0.75 20%, 1.03 27%, 1.14 33%,
+    1.13 38%, 1.06 45%, 0.99 53%, 0.97 60%, 0.99 70%, 1 78%, 1 100%
+  );
+
+  --kit-stagger-step: 60ms;
+  --kit-motion-distance: 24px;
+  --kit-motion-parallax: 40px;
+}
+
+/* reduced-motion: токены схлопываются — все анимации мгновенно в конечном кадре.
+   JavaScript для этого не нужен. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --kit-dur-1: 0.01ms;
+    --kit-dur-2: 0.01ms;
+    --kit-dur-3: 0.01ms;
+    --kit-dur-4: 0.01ms;
+    --kit-stagger-step: 0ms;
+    --kit-motion-distance: 0px;
+    --kit-motion-parallax: 0px;
+  }
+}
+
+/* ---------- reveal: появление при входе во вьюпорт ---------- */
+@keyframes kit-motion-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--kit-motion-distance), 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.m-reveal {
+  opacity: 0;
+}
+
+/* Нет поддержки — контент виден сразу, без анимации. */
+@supports not (animation-timeline: view()) {
+  .m-reveal {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .m-reveal {
+    opacity: 1;
+    animation: kit-motion-reveal var(--kit-dur-3) var(--kit-ease-out-expo) both;
+    animation-timeline: view();
+    animation-range: entry 8% cover 32%;
+  }
+}
+
+/* ---------- stagger: группа с задержкой по детям ---------- */
+.m-stagger > * {
+  opacity: 1;
+}
+
+@supports not (animation-timeline: view()) {
+  .m-stagger > * {
+    opacity: 1;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .m-stagger > * {
+    opacity: 1;
+    animation: kit-motion-reveal var(--kit-dur-3) var(--kit-ease-spring) both;
+    animation-timeline: view();
+    animation-range: entry 5% cover 25%;
+  }
+
+  .m-stagger > :nth-child(2) {
+    animation-delay: calc(var(--kit-stagger-step) * 1);
+  }
+  .m-stagger > :nth-child(3) {
+    animation-delay: calc(var(--kit-stagger-step) * 2);
+  }
+  .m-stagger > :nth-child(4) {
+    animation-delay: calc(var(--kit-stagger-step) * 3);
+  }
+  .m-stagger > :nth-child(5) {
+    animation-delay: calc(var(--kit-stagger-step) * 4);
+  }
+  .m-stagger > :nth-child(6) {
+    animation-delay: calc(var(--kit-stagger-step) * 5);
+  }
+}
+
+/* ---------- parallax ---------- */
+@keyframes kit-motion-parallax {
+  from {
+    transform: translate3d(0, calc(var(--kit-motion-parallax) * -1), 0);
+  }
+  to {
+    transform: translate3d(0, var(--kit-motion-parallax), 0);
+  }
+}
+
+@supports (animation-timeline: scroll()) {
+  .m-parallax {
+    animation: kit-motion-parallax linear both;
+    animation-timeline: scroll();
+    will-change: transform;
+  }
+}
+
+/* ---------- переходы между страницами (нативно, без JS) ---------- */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--kit-dur-2);
+  animation-timing-function: var(--kit-ease-out-quart);
+}
+
+/* ---------- микро-утилита: подъём при наведении ---------- */
+.m-lift {
+  transition: transform var(--kit-dur-2) var(--kit-ease-out-quart);
+}
+
+.m-lift:hover {
+  transform: translate3d(0, -4px, 0);
+}

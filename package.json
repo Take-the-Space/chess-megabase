@@ -1,5 +1,5 @@
 {
-  "name": "chess-starter",
+  "name": "chess-megabase",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@10.33.2",

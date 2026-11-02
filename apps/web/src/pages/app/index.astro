@@ -1,13 +1,14 @@
 ---
-// Экран игры: единственный Solid-остров на странице. Вся логика клиентская
-// (chessground + chessops + бот), серверу нужен только HTML-каркас.
+// Экран библиотеки: единственный Solid-остров. Вся логика клиентская
+// (поиск по индексу + chessground + chessops + WebAudio), телу партии
+// нужен только HTTP-запрос к Sailbox-библиотеке.
 import Base from "../../layouts/Base.astro";
-import { ChessApp } from "@chess-starter/chess";
+import { LibraryApp } from "../../components/LibraryApp.tsx";
 ---
 
 <Base
-  title="Chess — Take the Space"
-  description="Interactive chess board, same as lichess: drag, legal-move hints, built-in bot. Works in Telegram and in the browser."
+  title="Библиотека партий — Take the Space"
+  description="Поиск по 115 000 партий элитных гроссмейстеров и чиловый просмотрщик: доска lichess, автоплей, генеративная lofi-музыка."
 >
-  <ChessApp client:only="solid" />
+  <LibraryApp client:only="solid" />
 </Base>

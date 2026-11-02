@@ -1,51 +1,59 @@
 ---
-// Мини-лендинг: без JS-островов, только разметка и токены кита.
+// Лендинг библиотеки: без JS-островов, только разметка и токены кита.
 import Base from "../layouts/Base.astro";
 
-const facts = [
-  { label: "Board", text: "chessground — open-source lichess board (BSD-2)." },
-  { label: "Rules", text: "chessops — full legal-move validation (MIT)." },
-  { label: "Bot", text: "Client-side minimax with alpha-beta, three levels." },
-  { label: "Deploy", text: "Static Astro build on Cloudflare Workers." },
+const players = [
+  "Карлсен", "Накамура", "Каспаров", "Крамник", "Анд", "Топалов", "Аронян",
+  "Каруана", "Гири", "Со", "Мамедьяров", "Вашье-Лаграв", "Непомнящий",
+  "Дин Лижэнь", "Фируджа", "Раджабов", "Грищук", "Свидлер", "Широв",
+  "Иванчук", "Гельфанд", "Леко", "Адамс", "Морозевич",
 ];
 ---
 
 <Base
-  title="Chess — Take the Space"
-  description="Interactive chess board, same as lichess: drag, legal-move hints, built-in bot. Works in Telegram and in the browser."
+  title="Библиотека партий — Take the Space"
+  description="115 000 партий элитных гроссмейстеров: мгновенный поиск по игрокам, доска lichess, автоплей, генеративная lofi-музыка."
 >
-  <div class="mx-auto max-w-[560px] px-5">
+  <div class="mx-auto max-w-[620px] px-5">
     <section class="grid gap-5 py-12">
-      <span class="section-title">Take the Space / chess</span>
+      <span class="section-title">Take the Space / chess library</span>
       <h1 class="font-display text-4xl leading-tight">
-        Chess, same board as lichess. In your pocket.
+        Мегабаза партий: 115 142 партии элиты, под lofi.
       </h1>
       <p class="text-muted">
-        Открытая доска chessground и правила chessops: перетаскивание фигур,
-        подсветка легальных ходов, превращение пешки и встроенный бот. Всё работает
-        на устройстве — без аккаунта и сервера.
+        Все партии Карлсена, Каспарова, Морозевича, Накамуры и ещё двух десятков
+        сильнейших шахматистов планеты — в одном месте. Печатаете «Морозевич» —
+        получаете все его партии. Выбираете — доска просыпается и показывает.
       </p>
       <div class="flex flex-wrap gap-3">
-        <a class="btn-primary" href="/app">Play</a>
+        <a class="btn-primary" href="/app">Открыть библиотеку</a>
       </div>
     </section>
 
     <section class="m-reveal grid gap-3 border-t border-line py-10">
-      <span class="section-title">Under the hood</span>
-      {
-        facts.map((f) => (
-          <div class="flex flex-wrap items-baseline gap-3 border-t border-line py-3">
-            <span class="font-display text-sm text-text w-[110px]">{f.label}</span>
-            <span class="text-sm text-muted">{f.text}</span>
-          </div>
-        ))
-      }
+      <span class="section-title">В базе</span>
+      <p class="text-sm text-muted leading-relaxed">
+        {players.join(" · ")}
+      </p>
+    </section>
+
+    <section class="m-reveal grid gap-3 border-t border-line py-10">
+      <span class="section-title">Как это работает</span>
+      <p class="text-sm text-muted">
+        Индекс метаданных живёт на Cloudflare Workers — поиск мгновенный и работает
+        офлайн после первого визита (кеш в браузере). Тела партий хранит спящий
+        Sailbox, который просыпается по запросу за пару секунд — так библиотека
+        ничего не стоит, пока её не читают. Доска — open-source chessground (как на
+        lichess), ходы считает chessops. Музыка — генеративный lofi на WebAudio,
+        без внешних файлов. Навигация — стрелки, автоплей — пробел, музыка — M.
+      </p>
     </section>
 
     <footer class="border-t border-line py-8">
       <p class="text-xs text-faint">
         Chessground BSD-2-Clause (lichess.org), piece art by Colin M.L. Burnett.
-        Chessops MIT. App code: Take the Space.
+        Chessops GPL-3.0-or-later. Источник партий — pgnmentor.com (свободно
+        распространяемые файлы игроков). App code: Take the Space, GPLv3.
       </p>
     </footer>
   </div>

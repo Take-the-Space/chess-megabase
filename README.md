@@ -1,52 +1,35 @@
-# chess-starter
+# chess-megabase
 
-Стартер шахматных веб-приложений (Telegram Mini App + обычный браузер) на
-открытой доске lichess. Из него собираются обучающие приложения для детей
-и взрослых — школы, тренеры, самостоятельная практика.
+Мегабаза партий Take the Space: **115 142 партии** 24 элитных гроссмейстеров —
+от Карлсена и Каспарова до Морозевича и Адамса. Мгновенный поиск по игрокам
+и турнирам, чиловый просмотрщик на доске lichess, генеративная lofi-музыка.
+
+**Архитектура** — индекс и тела разнесены, чтобы всё было почти бесплатно:
+
+- **Cloudflare Worker** (`tts-chess-megabase`): статика приложения + индекс
+  метаданных (`apps/web/public/data/meta.json`, ~15 МБ, ~1.9 МБ в gzip).
+  Клиент один раз скачивает индекс, кладёт в IndexedDB (по ETag) и дальше
+  ищет мгновенно, в том числе офлайн.
+- **Sailbox-библиотека** (спящая VM, wake-on-demand): канонические PGN-файлы
+  (79 МБ) + SQLite-индекс смещений. Крошечный HTTP-сервер отдаёт тело партии
+  по `GET /g/<id>.pgn` (заголовок `x-db-key` — заслон от сканеров). Бокс спит
+  при простое (>300 с) и просыпается от первого запроса (~1 с); пока он
+  холодный — клиент ретраит с «Пробуждаем библиотеку…».
+- **Просмотрщик**: доска chessground + парсер chessops, автоплей, горячие
+  клавиши (←/→, Home/End, пробел — автоплей, M — музыка).
+
+**Данные:** [pgnmentor.com](https://www.pgnmentor.com/files.html) — свободно
+распространяемые файлы партий по игрокам (Carlsen 7818, Nakamura 10220,
+Kasparov 2128, Morozevich 2793, … всего 115 142). Канонизация: UTF-8/LF,
+разрезание по `[Event` после начала movetext (в файлах pgnmentor бывают
+пустые строки внутри партий), индекс со смещениями.
 
 **Ядро:**
-- [chessground](https://github.com/lichess-org/chessground) (BSD-2-Clause) — официальная доска lichess: drag'n'drop, подсветка легальных ходов, превращения, last move/check.
-- [chessops](https://github.com/ornicar/chessops) (GPL-3.0-or-later) — движок правил lichess: легальность, SAN, статус партии.
-- Клиентский бот (minimax с alpha-beta, 3 уровня) — без сервера.
-- Звуки (WebAudio-синтез) и haptics Telegram.
-- Дизайн-контракт Take the Space (тёмная тема, панели, сигнальный цвет) в `packages/ui`.
+- [chessground](https://github.com/lichess-org/chessground) (BSD-2-Clause) — официальная доска lichess.
+- [chessops](https://github.com/ornicar/chessops) (GPL-3.0-or-later) — правила и PGN-парсер.
+- Музыка — генеративный lofi на WebAudio, без внешних ассетов.
 
 **Лицензия:** GPLv3 (следствие GPL-зависимости chessops). Тексты уведомлений — в конце файла.
-
-## Структура
-
-```
-apps/web/            # приложение-оболочка: страницы, layout, брендинг
-packages/chess/      # ядро: доска, правила, бот, звуки, Telegram-хелперы
-packages/ui/         # дизайн-система (токены, UnoCSS preset)
-```
-
-`packages/chess` экспортирует:
-
-```ts
-import {
-  ChessApp,      // готовый экран «играть с ботом» — база для любого обучающего приложения
-  ChessBoard,    // обёртка chessground (контролируемая: fen, dests, lastMove, check, события)
-  applyMove, legalDests, statusOf, needsPromotion, parsePosition, toFen, // правила
-  chooseBotMove, // бот: level 1|2|3
-  playSound,
-  initMiniApp, telegramWebApp,
-} from "@chess-starter/chess";
-import "@chess-starter/chess/chess.css"; // раскладка поверх chessground
-```
-
-## Как создать новое приложение
-
-1. **Use this template** (репозиторий помечен как template) → новый репозиторий в `Take-the-Space`.
-2. Поменять имя воркера в `wrangler.jsonc` (`"name": "tts-<приложение>"`) — URL будет
-   `https://tts-<приложение>.iosurun.workers.dev`.
-3. Писать своё приложение:
-   - простой путь — импортировать `ChessApp` и менять параметры/внешний вид;
-   - свой сценарий (уроки, задачи, разбор) — собрать экран из `ChessBoard` +
-     функций правил из `packages/chess`, глядя на `ChessApp.tsx` как на образец.
-4. Брендинг: `apps/web/src/pages/index.astro`, заголовки в `Base.astro`.
-5. Секреты деплоя (если ещё не в орге): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`
-   → GitHub Actions сам задеплоит на push в `main` (job `deploy`; без секретов — только CI).
 
 ## Разработка
 
@@ -58,10 +41,9 @@ pnpm build
 pnpm deploy         # wrangler deploy (нужен логин wrangler или CLOUDFLARE_API_TOKEN)
 ```
 
-Telegram: @BotFather → /mybots → Bot Settings → Menu Button → URL страницы `/app/`.
-
 ## Уведомления о стороннем коде
 
 - **chessground** — BSD-2-Clause, © lichess.org (Thibault Duplessis и контрибьюторы).
 - **cburnett** — SVG-фигуры, © Colin M.L. Burnett (лицензия указана в CSS chessground).
 - **chessops** — GPL-3.0-or-later, © ornicar/lila contributors; делает весь проект производным от GPL.
+- **Партии** — pgnmentor.com (свободно распространяемые PGN-файлы игроков).

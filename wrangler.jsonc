@@ -1,7 +1,7 @@
 // Cloudflare Workers: статика Astro-сборки (приложение целиком клиентское).
 // Деплой: wrangler deploy (локально или из GitHub Actions на push в main).
 {
-  "name": "tts-chess-starter",
+  "name": "tts-chess-megabase",
   "compatibility_date": "2026-01-01",
   "assets": {
     "directory": "./apps/web/dist",

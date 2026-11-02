@@ -26,6 +26,9 @@ importers:
       '@chess-starter/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      chessops:
+        specifier: ^0.15.1
+        version: 0.15.1
       solid-js:
         specifier: ^1.9.17
         version: 1.9.18

@@ -124,10 +124,141 @@ export async function fetchGameBody(
   throw new Error("Библиотека не отвечает — попробуйте ещё раз позже");
 }
 
+/**
+ * Транслитерация кириллицы в латиницу (только строчные + ё: до транслита
+ * строка всегда приводится к нижнему регистру).
+ */
+const CYR: Record<string, string> = {
+  а: "a",
+  б: "b",
+  в: "v",
+  г: "g",
+  д: "d",
+  е: "e",
+  ё: "e",
+  ж: "zh",
+  з: "z",
+  и: "i",
+  й: "y",
+  к: "k",
+  л: "l",
+  м: "m",
+  н: "n",
+  о: "o",
+  п: "p",
+  р: "r",
+  с: "s",
+  т: "t",
+  у: "u",
+  ф: "f",
+  х: "kh",
+  ц: "ts",
+  ч: "ch",
+  ш: "sh",
+  щ: "shch",
+  ъ: "",
+  ы: "y",
+  ь: "",
+  э: "e",
+  ю: "yu",
+  я: "ya",
+};
+
+/**
+ * Фонетическая редукция латиницы: однопроходная свёртка диграфов и одиночных
+ * букв так, чтобы транслит кириллицы и оригинальная латиница давали одну форму.
+ * «Карлсен» → karlsen = reduce("Carlsen").
+ */
+function reduceLatin(src: string): string {
+  let out = "";
+  let i = 0;
+  const n = src.length;
+  while (i < n) {
+    switch (src[i]) {
+      case "s":
+        if (src.startsWith("shch", i)) { out += "s"; i += 4; }
+        else if (src.startsWith("sch", i)) { out += "s"; i += 3; }
+        else if (src.startsWith("sh", i)) { out += "s"; i += 2; }
+        else { out += "s"; i++; }
+        break;
+      case "z":
+        if (src.startsWith("zh", i)) { out += "z"; i += 2; } else { out += "z"; i++; }
+        break;
+      case "k":
+        if (src.startsWith("kh", i)) { out += "k"; i += 2; } else { out += "k"; i++; }
+        break;
+      case "t":
+        if (src.startsWith("ts", i) || src.startsWith("tz", i)) { out += "k"; i += 2; } else { out += "t"; i++; }
+        break;
+      case "c":
+        if (src.startsWith("ch", i) || src.startsWith("ck", i)) { out += "k"; i += 2; } else { out += "k"; i++; }
+        break;
+      case "j":
+        if (src.startsWith("ja", i)) { out += "a"; i += 2; }
+        else if (src.startsWith("ju", i)) { out += "u"; i += 2; }
+        else { out += "i"; i++; }
+        break;
+      case "y":
+        if (src.startsWith("ya", i)) { out += "a"; i += 2; }
+        else if (src.startsWith("yu", i)) { out += "u"; i += 2; }
+        else { out += "i"; i++; }
+        break;
+      case "i":
+        if (src.startsWith("iy", i)) { out += "i"; i += 2; }
+        else if (src.startsWith("ia", i)) { out += "a"; i += 2; }
+        else { out += "i"; i++; }
+        break;
+      case "x": out += "ks"; i++; break;
+      case "w": out += "v"; i++; break;
+      default: out += src[i]; i++;
+    }
+  }
+  return out;
+}
+
+/** Кеш редуцированных hay-строк: привязан к identity массива rows. */
+let reducedCache: { rows: MetaRow[]; hays: string[] } | null = null;
+
+/** Редуцированные hay-строки индекса: строятся лениво, один раз на массив rows. */
+function reducedHays(rows: MetaRow[]): string[] {
+  if (reducedCache && reducedCache.rows === rows) return reducedCache.hays;
+  const hays = rows.map((r) => reduceLatin(`${r.w} ${r.b} ${r.e}`.toLowerCase()));
+  reducedCache = { rows, hays };
+  return hays;
+}
+
 /** Подстрочный поиск без учёта регистра по игрокам и турниру. */
 export function searchGames(rows: MetaRow[], query: string, limit = 100): MetaRow[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
+
+  // Кириллический запрос: транслит запроса + редукция обеих сторон,
+  // иначе в латинском индексе («Carlsen») ничего не находится.
+  if (/[а-яё]/.test(q)) {
+    const nq = reduceLatin(q.replace(/[а-яё]/g, (ch) => CYR[ch] ?? ch));
+    // Ъ/Ь транслитерируются в пустые строки — пустых термов быть не должно,
+    // иначе запрос из одних «ъ» матчил бы весь индекс.
+    const nterms = nq.split(/\s+/).filter(Boolean);
+    if (!nterms.length) return [];
+    const hays = reducedHays(rows);
+    const found: { row: MetaRow; score: number }[] = [];
+    for (let n = 0; n < rows.length; n++) {
+      const row = rows[n]!;
+      const hay = hays[n]!;
+      let score = 0;
+      let ok = true;
+      for (const t of nterms) {
+        const idx = hay.indexOf(t);
+        if (idx < 0) { ok = false; break; }
+        // Скоринг тот же, что в латинском пути: начало имени весомее.
+        score += idx === 0 || hay[idx - 1] === " " || hay[idx - 1] === "," ? 2 : 1;
+      }
+      if (ok) found.push({ row, score });
+    }
+    found.sort((a, b) => b.row.d.localeCompare(a.row.d) || b.score - a.score);
+    return found.slice(0, limit).map((h) => h.row);
+  }
+
   const terms = q.split(/\s+/);
   const hits: { row: MetaRow; score: number }[] = [];
   for (const row of rows) {

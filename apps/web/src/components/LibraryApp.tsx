@@ -195,7 +195,7 @@ export function LibraryApp() {
         <Show when={!booted()} fallback={
           <input
             class="w-full border border-line bg-panel px-4 py-3 text-text rounded-sm placeholder:text-faint focus:border-signal focus:outline-none"
-            placeholder="Игрок или турнир: Морозевич, Карлсен, Билль…"
+            placeholder="Игрок или турнир, кириллицей или латиницей: Карлсен, Morozevich, Билль…"
             value={query()}
             onInput={(e) => setQuery(e.currentTarget.value)}
           />
@@ -233,6 +233,12 @@ export function LibraryApp() {
                 </button>
               )}
             </For>
+            {/* Пустой результат больше не выглядит как «сайт не работает». */}
+            <Show when={booted() && query().trim() !== "" && hits().length === 0}>
+              <p class="px-2 py-1.5 text-sm text-faint">
+                Ничего не найдено. Попробуйте другую транскрипцию имени (Carlsen, Morozevich) или одно слово.
+              </p>
+            </Show>
           </div>
         </div>
 
